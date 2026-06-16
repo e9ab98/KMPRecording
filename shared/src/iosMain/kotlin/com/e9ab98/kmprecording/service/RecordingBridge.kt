@@ -15,4 +15,5 @@ object RecordingBridge {
     var playerPlay: ((UIView) -> Unit)? = null
     var playerPause: ((UIView) -> Unit)? = null
     var playerCleanup: ((UIView) -> Unit)? = null
+    var setPlayerTimeObserver: ((UIView, (Double) -> Unit) -> Unit)? = null
 }

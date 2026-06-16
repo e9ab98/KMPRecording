@@ -27,13 +27,24 @@ public class PlayerView: UIView {
     }
 
     private var player: AVPlayer?
+    private var timeObserverToken: Any? = nil
+    public var onTimeUpdate: ((Double) -> Void)? = nil
 
     public func setVideoURL(_ url: URL) {
         print("PlayerView: setVideoURL called with \(url)")
+        cleanup()
+        
         let playerItem = AVPlayerItem(url: url)
-        player = AVPlayer(playerItem: playerItem)
+        let player = AVPlayer(playerItem: playerItem)
+        self.player = player
         playerLayer.player = player
         playerLayer.videoGravity = .resizeAspect
+        
+        let interval = CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC))
+        timeObserverToken = player.addPeriodicTimeObserver(forInterval: interval, queue: .main) { [weak self] time in
+            self?.onTimeUpdate?(time.seconds)
+        }
+        
         print("PlayerView: player set on layer, playerLayer.frame = \(playerLayer.frame)")
     }
 
@@ -47,6 +58,10 @@ public class PlayerView: UIView {
     }
 
     public func cleanup() {
+        if let token = timeObserverToken {
+            player?.removeTimeObserver(token)
+            timeObserverToken = nil
+        }
         player?.pause()
         player = nil
         playerLayer.player = nil
@@ -114,6 +129,14 @@ public class RecordingHelper: NSObject {
         RecordingBridge.shared.playerCleanup = { view in
             if let playerView = view as? PlayerView {
                 playerView.cleanup()
+            }
+        }
+
+        RecordingBridge.shared.setPlayerTimeObserver = { view, callback in
+            if let playerView = view as? PlayerView {
+                playerView.onTimeUpdate = { seconds in
+                    callback(seconds)
+                }
             }
         }
     }

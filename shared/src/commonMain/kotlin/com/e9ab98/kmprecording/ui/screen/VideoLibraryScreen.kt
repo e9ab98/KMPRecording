@@ -46,6 +46,11 @@ import com.e9ab98.kmprecording.domain.L10n
 import com.e9ab98.kmprecording.model.VideoRecord
 import com.e9ab98.kmprecording.presentation.VideoLibraryViewModel
 import com.e9ab98.kmprecording.ui.component.VideoPlayerView
+import androidx.compose.ui.text.font.FontWeight
+import com.e9ab98.kmprecording.domain.SrtParser
+import com.e9ab98.kmprecording.domain.SrtCue
+import com.e9ab98.kmprecording.service.readTextFromFile
+
 
 @Composable
 fun VideoLibraryScreen(
@@ -177,11 +182,38 @@ private fun VideoPlaybackScreen(
     video: VideoRecord,
     onBack: () -> Unit
 ) {
+    val srtPath = remember(video.filePath) {
+        video.filePath.substringBeforeLast(".") + ".srt"
+    }
+    
+    val srtCues = remember(srtPath) {
+        val content = readTextFromFile(srtPath)
+        SrtParser.parse(content)
+    }
+    
+    var playbackTimeMs by remember { mutableStateOf(0L) }
+    
+    val currentCue = remember(playbackTimeMs, srtCues) {
+        srtCues.find { playbackTimeMs in it.startTimeMs..it.endTimeMs }
+    }
+
     Box(modifier = Modifier.fillMaxSize().background(Color.Black)) {
         VideoPlayerView(
             modifier = Modifier.fillMaxSize(),
-            videoPath = video.filePath
+            videoPath = video.filePath,
+            onTimeUpdate = { timeMs ->
+                playbackTimeMs = timeMs
+            }
         )
+        
+        if (currentCue != null) {
+            PlaybackHudOverlay(
+                cue = currentCue,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(horizontal = 24.dp, vertical = 72.dp) // Offset above standard controller overlay
+            )
+        }
         
         // Top Bar Overlay
         Row(
@@ -213,6 +245,75 @@ private fun VideoPlaybackScreen(
                 style = MaterialTheme.typography.titleMedium,
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun PlaybackHudOverlay(
+    cue: SrtCue,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.Black.copy(alpha = 0.6f))
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.Bottom
+            ) {
+                val speed = cue.speedText.substringAfter("Speed: ").substringBefore("km/h").trim().ifEmpty { "--" }
+                Text(
+                    text = speed,
+                    style = MaterialTheme.typography.displayMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        fontSize = 32.sp
+                    )
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "km/h",
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = Color.White.copy(alpha = 0.7f),
+                        fontWeight = FontWeight.Medium
+                    ),
+                    modifier = Modifier.padding(bottom = 6.dp)
+                )
+            }
+            
+            Text(
+                text = "HUD PLAYBACK",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = Color(0xFF64B5F6),
+                    fontWeight = FontWeight.Bold
+                )
+            )
+        }
+        
+        Column {
+            val latText = cue.locationText.substringBefore(",").trim()
+            val lonText = cue.locationText.substringAfter(",").trim()
+            Text(
+                text = latText,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Medium
+                )
+            )
+            Text(
+                text = lonText,
+                style = MaterialTheme.typography.bodySmall.copy(
+                    color = Color.White.copy(alpha = 0.8f),
+                    fontWeight = FontWeight.Medium
+                )
             )
         }
     }

@@ -51,3 +51,14 @@ actual fun deleteFile(filePath: String): Boolean {
     }
     return false
 }
+
+actual fun readTextFromFile(filePath: String): String {
+    try {
+        val nsString = NSString.create(contentsOfFile = filePath, encoding = NSUTF8StringEncoding, error = null)
+        return nsString?.toString() ?: ""
+    } catch (e: Exception) {
+        println("FileWriter: Failed to read from file: ${e.message}")
+        return ""
+    }
+}
+

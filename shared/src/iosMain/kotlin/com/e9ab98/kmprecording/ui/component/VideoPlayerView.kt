@@ -18,7 +18,8 @@ import platform.UIKit.UIView
 @Composable
 actual fun VideoPlayerView(
     modifier: Modifier,
-    videoPath: String
+    videoPath: String,
+    onTimeUpdate: ((Long) -> Unit)?
 ) {
     if (videoPath.isEmpty()) {
         Box(
@@ -37,6 +38,11 @@ actual fun VideoPlayerView(
     LaunchedEffect(videoPath, playerView) {
         val url = NSURL.fileURLWithPath(videoPath)
         RecordingBridge.setPlayerVideoURL?.invoke(playerView, url)
+        if (onTimeUpdate != null) {
+            RecordingBridge.setPlayerTimeObserver?.invoke(playerView) { seconds ->
+                onTimeUpdate((seconds * 1000).toLong())
+            }
+        }
         RecordingBridge.playerPlay?.invoke(playerView)
     }
 

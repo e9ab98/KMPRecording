@@ -26,3 +26,14 @@ actual fun deleteFile(filePath: String): Boolean {
         false
     }
 }
+
+actual fun readTextFromFile(filePath: String): String {
+    return try {
+        val file = File(filePath)
+        if (file.exists()) file.readText() else ""
+    } catch (e: Exception) {
+        e.printStackTrace()
+        ""
+    }
+}
+

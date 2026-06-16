@@ -16,7 +16,8 @@ import java.io.File
 @Composable
 actual fun VideoPlayerView(
     modifier: Modifier,
-    videoPath: String
+    videoPath: String,
+    onTimeUpdate: ((Long) -> Unit)?
 ) {
     val context = LocalContext.current
     val player = remember {
@@ -28,6 +29,15 @@ actual fun VideoPlayerView(
             player.setMediaItem(MediaItem.fromUri(Uri.fromFile(File(videoPath))))
             player.prepare()
             player.playWhenReady = true
+        }
+    }
+
+    if (onTimeUpdate != null) {
+        LaunchedEffect(player, videoPath) {
+            while (true) {
+                onTimeUpdate(player.currentPosition)
+                kotlinx.coroutines.delay(100)
+            }
         }
     }
 
