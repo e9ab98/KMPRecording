@@ -2,6 +2,8 @@ name: Build & Release APK
 
 on:
   push:
+    branches:
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
@@ -217,6 +219,18 @@ jobs:
       contents: write # 必须，用于创建 Releases 和上传构建附件
     
     steps:
+      - name: Checkout repository (for tagging)
+        uses: actions/checkout@v4
+        if: github.ref_type == 'branch'
+
+      - name: Update latest tag
+        if: github.ref_type == 'branch'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git tag -f latest
+          git push -f origin latest
+
       - name: Download All Artifacts
         uses: actions/download-artifact@v4
         with:
@@ -230,10 +244,20 @@ jobs:
           echo "=== 待发布资源列表 ==="
           ls -lh release-assets/
 
+      - name: Determine Tag Name
+        id: get_tag
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            echo "tag_name=${{ github.ref_name }}" >> $GITHUB_OUTPUT
+          else
+            echo "tag_name=latest" >> $GITHUB_OUTPUT
+          fi
+
       - name: Create and Upload to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ inputs.tag_name || github.ref_name }}
+          tag_name: ${{ github.event.inputs.tag_name || steps.get_tag.outputs.tag_name }}
+          target_commitish: ${{ github.sha }}
           files: release-assets/*
           fail_on_unmatched_files: false
           draft: false
