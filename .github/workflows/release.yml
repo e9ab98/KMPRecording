@@ -210,17 +210,17 @@ jobs:
           if [ "${{ steps.ios_sign_setup.outputs.has_signing }}" = "true" ]; then
             echo "正在导出签名 IPA..."
             cat <<EOF > ExportOptions.plist
-            <?xml version="1.0" encoding="UTF-8"?>
-            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-            <plist version="1.0">
-            <dict>
-                <key>method</key>
-                <string>ad-hoc</string>
-                <key>compileBitcode</key>
-                <false/>
-            </dict>
-            </plist>
-            EOF
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>method</key>
+    <string>ad-hoc</string>
+    <key>compileBitcode</key>
+    <false/>
+</dict>
+</plist>
+EOF
             xcodebuild -exportArchive \
                        -archivePath build_derived_device/KMPRecording.xcarchive \
                        -exportPath outputs/signed \
