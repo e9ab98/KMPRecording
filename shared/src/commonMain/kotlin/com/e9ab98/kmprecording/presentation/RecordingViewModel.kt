@@ -67,6 +67,7 @@ class RecordingViewModel(
             }
             scope.launch {
                 settingsRepository.defaultMode.collect { mode ->
+                    println("RecordingViewModel: defaultMode collected: $mode")
                     _uiState.value = _uiState.value.copy(mode = mode)
                 }
             }
@@ -153,6 +154,7 @@ class RecordingViewModel(
     }
 
     fun modeChanged(mode: RecordingMode) {
+        println("RecordingViewModel: modeChanged called with $mode")
         scope.launch {
             settingsRepository.updateDefaultMode(mode)
         }
@@ -163,9 +165,14 @@ class RecordingViewModel(
     }
 
     private fun applyControllerState(state: com.e9ab98.kmprecording.domain.RecordingSessionState) {
+        val isRecordingActive = state.lifecycle is RecordingLifecycle.Recording ||
+                state.lifecycle is RecordingLifecycle.Paused ||
+                state.lifecycle is RecordingLifecycle.Stopping ||
+                state.lifecycle is RecordingLifecycle.Preparing
+
         _uiState.value = _uiState.value.copy(
             lifecycle = state.lifecycle,
-            mode = state.mode,
+            mode = if (isRecordingActive) state.mode else settingsRepository.defaultMode.value,
             elapsedSeconds = state.elapsedSeconds,
             activeSegmentIndex = state.activeSegmentIndex,
             errorMessage = (state.lifecycle as? RecordingLifecycle.Error)?.message

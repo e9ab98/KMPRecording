@@ -20,3 +20,4 @@ node_modules/
 .trae/
 dos/
 .codex-derived-data/
+build_derived_simulator/

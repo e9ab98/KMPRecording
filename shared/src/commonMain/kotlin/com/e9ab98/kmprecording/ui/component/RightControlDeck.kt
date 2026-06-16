@@ -52,6 +52,7 @@ fun RightControlDeck(
         ) {
             IconButton(
                 onClick = {
+                    println("RightControlDeck: Mode switcher clicked! Current mode = ${state.mode}")
                     onModeChanged(
                         if (state.mode == RecordingMode.NORMAL) RecordingMode.LOOP else RecordingMode.NORMAL
                     )

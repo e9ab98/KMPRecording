@@ -98,7 +98,8 @@ jobs:
           fi
           
           # Upload files to GitHub Release
-          gh release create "$TAG_NAME" outputs/* --title "$TAG_NAME" --notes "Automated release" --target ${{ github.sha }} || gh release upload "$TAG_NAME" outputs/* --clobber
+          rm -f outputs/*.idsig
+          gh release create "$TAG_NAME" outputs/* --title "$TAG_NAME" --generate-notes --target ${{ github.sha }} || (gh release edit "$TAG_NAME" --generate-notes && gh release upload "$TAG_NAME" outputs/* --clobber)
 
   build-ios:
     name: Build iOS App (IPA & Simulator)
@@ -242,4 +243,5 @@ jobs:
           fi
           
           # Upload files to GitHub Release
-          gh release create "$TAG_NAME" outputs/* --title "$TAG_NAME" --notes "Automated release" --target ${{ github.sha }} || gh release upload "$TAG_NAME" outputs/* --clobber
+          rm -f outputs/*.idsig
+          gh release create "$TAG_NAME" outputs/* --title "$TAG_NAME" --generate-notes --target ${{ github.sha }} || (gh release edit "$TAG_NAME" --generate-notes && gh release upload "$TAG_NAME" outputs/* --clobber)

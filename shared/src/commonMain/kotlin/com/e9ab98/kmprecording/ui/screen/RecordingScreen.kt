@@ -35,29 +35,34 @@ fun RecordingScreen(
         modifier = Modifier
             .fillMaxSize()
             .background(Color.Black)
-            .systemBarsPadding()
     ) {
         PlatformCameraPreview(previewHandle = previewHandle, modifier = Modifier.fillMaxSize())
         
-        RecordingOverlay(
-            state = state,
-            modifier = Modifier.fillMaxSize()
-        )
-        
-        RightControlDeck(
-            state = state,
-            onModeChanged = viewModel::modeChanged,
-            onSwitchCamera = onSwitchCamera,
-            onOpenLibrary = onNavigateToVideoList,
-            onOpenSettings = onNavigateToSettings,
-            onStart = viewModel::startClicked,
-            onStop = viewModel::stopClicked,
-            modifier = Modifier.align(Alignment.CenterEnd)
-        )
-        
-        state.errorMessage?.let { message ->
-            Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)) {
-                Text(message)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .systemBarsPadding()
+        ) {
+            RecordingOverlay(
+                state = state,
+                modifier = Modifier.fillMaxSize()
+            )
+            
+            RightControlDeck(
+                state = state,
+                onModeChanged = viewModel::modeChanged,
+                onSwitchCamera = onSwitchCamera,
+                onOpenLibrary = onNavigateToVideoList,
+                onOpenSettings = onNavigateToSettings,
+                onStart = viewModel::startClicked,
+                onStop = viewModel::stopClicked,
+                modifier = Modifier.align(Alignment.CenterEnd)
+            )
+            
+            state.errorMessage?.let { message ->
+                Snackbar(modifier = Modifier.align(Alignment.BottomCenter).padding(16.dp)) {
+                    Text(message)
+                }
             }
         }
     }

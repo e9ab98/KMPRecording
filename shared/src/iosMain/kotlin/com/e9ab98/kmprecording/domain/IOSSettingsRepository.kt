@@ -35,6 +35,7 @@ class IOSSettingsRepository : SettingsRepository {
     }
 
     override suspend fun updateDefaultMode(mode: RecordingMode) {
+        println("IOSSettingsRepository: updateDefaultMode called with $mode")
         defaults.setInteger(RecordingMode.entries.indexOf(mode).toLong(), "recording_default_mode")
         _defaultMode.value = mode
     }

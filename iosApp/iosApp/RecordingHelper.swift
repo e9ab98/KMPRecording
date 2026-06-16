@@ -13,6 +13,11 @@ public class PreviewView: UIView {
     public var previewLayer: AVCaptureVideoPreviewLayer {
         return self.layer as! AVCaptureVideoPreviewLayer
     }
+
+    override public func layoutSubviews() {
+        super.layoutSubviews()
+        previewLayer.frame = self.bounds
+    }
 }
 
 // PlayerView: 重写 layerClass 让 AVPlayerLayer 成为视图的主 layer
