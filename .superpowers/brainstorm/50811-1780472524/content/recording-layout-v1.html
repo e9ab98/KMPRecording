@@ -1,0 +1,73 @@
+<h2>Recording Cockpit Layout</h2>
+<p class="subtitle">One shared Compose screen for Android and iOS. Platform-specific code renders only the preview surface and recording engine.</p>
+
+<div class="cards">
+  <div class="card" data-choice="right-rail" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">A1: Preview + Right Control Rail</div>
+        <div class="mockup-body">
+          <div style="display:grid;grid-template-columns:2.15fr .85fr;gap:12px;min-height:310px;">
+            <div style="background:#111;border-radius:8px;position:relative;overflow:hidden;">
+              <div style="position:absolute;top:10px;left:10px;background:#c62828;color:white;padding:5px 9px;border-radius:4px;font-size:12px;">REC · 00:12:38</div>
+              <div style="position:absolute;top:10px;right:10px;background:rgba(20,25,28,.85);color:#e0e0e0;padding:5px 9px;border-radius:4px;font-size:12px;">1080P · 10 Mbps · Rear</div>
+              <div style="position:absolute;bottom:12px;left:12px;display:flex;gap:8px;">
+                <div style="background:rgba(0,0,0,.55);color:white;padding:6px 8px;border-radius:4px;font-size:12px;">Storage 72%</div>
+                <div style="background:rgba(0,0,0,.55);color:white;padding:6px 8px;border-radius:4px;font-size:12px;">Loop #8</div>
+              </div>
+              <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#6f6f6f;">camera preview</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:9px;">
+              <div class="placeholder" style="height:48px;">Mode toggle</div>
+              <div class="placeholder" style="height:48px;">Motion toggle</div>
+              <div class="placeholder" style="height:48px;">Camera / quality</div>
+              <div class="placeholder" style="height:48px;">Storage summary</div>
+              <div style="margin-top:auto;display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+                <button class="mock-button" style="background:#37474f;">Library</button>
+                <button class="mock-button" style="background:#546e7a;">Settings</button>
+              </div>
+              <button class="mock-button" style="background:#c62828;height:48px;">Start / Stop</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A1. Right Rail</h3>
+      <p>Best for landscape. Keeps preview large, controls dense but stable, and works well on tablets and phones held sideways.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="bottom-deck" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">A2: Preview + Bottom Deck</div>
+        <div class="mockup-body">
+          <div style="display:grid;grid-template-rows:1fr 76px;gap:12px;min-height:310px;">
+            <div style="background:#111;border-radius:8px;position:relative;display:flex;align-items:center;justify-content:center;color:#777;">
+              camera preview
+              <div style="position:absolute;top:10px;left:10px;background:#c62828;color:white;padding:5px 9px;border-radius:4px;font-size:12px;">REC · 00:12:38</div>
+            </div>
+            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
+              <div class="placeholder">Mode</div>
+              <div class="placeholder">Motion</div>
+              <div class="placeholder">Camera</div>
+              <div class="placeholder">Storage</div>
+              <button class="mock-button" style="background:#546e7a;">Library</button>
+              <button class="mock-button" style="background:#c62828;">Start</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A2. Bottom Deck</h3>
+      <p>Feels camera-like and simple, but controls become cramped on smaller landscape screens and can compete with the preview.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Recommended</h3>
+  <p>I recommend <strong>A1. Right Rail</strong>. It matches the current project's landscape orientation, preserves a large live preview, and creates a clean boundary: preview on the left, stateful controls on the right.</p>
+</div>

@@ -1,0 +1,66 @@
+<h2>Phase 1 Scope: Android and iOS Parity</h2>
+<p class="subtitle">First release target: normal recording, loop segments, video playback, and persistent settings on both platforms. Motion detection is deferred.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Recommended Architecture</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;min-height:360px;">
+      <div style="border:1px solid #ddd;border-radius:8px;padding:12px;">
+        <div class="label">Shared Compose UI</div>
+        <div class="placeholder" style="height:44px;margin-top:8px;">RecordingScreen</div>
+        <div class="placeholder" style="height:44px;margin-top:8px;">VideoLibraryScreen</div>
+        <div class="placeholder" style="height:44px;margin-top:8px;">SettingsScreen</div>
+        <div class="placeholder" style="height:44px;margin-top:8px;">PlayerScreen</div>
+        <p style="font-size:12px;margin-top:12px;">Same layout and interaction model on Android and iOS.</p>
+      </div>
+      <div style="border:1px solid #ddd;border-radius:8px;padding:12px;">
+        <div class="label">Shared State + Use Cases</div>
+        <div class="placeholder" style="height:38px;margin-top:8px;">RecordingViewModel</div>
+        <div class="placeholder" style="height:38px;margin-top:8px;">VideoLibraryViewModel</div>
+        <div class="placeholder" style="height:38px;margin-top:8px;">SettingsViewModel</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+          <div class="placeholder" style="height:60px;">Start/Stop</div>
+          <div class="placeholder" style="height:60px;">Loop Segment</div>
+        </div>
+        <p style="font-size:12px;margin-top:12px;">Business rules live here, not inside platform Composables.</p>
+      </div>
+      <div style="border:1px solid #ddd;border-radius:8px;padding:12px;">
+        <div class="label">Platform Engines</div>
+        <div class="placeholder" style="height:54px;margin-top:8px;">Android CameraX Recorder</div>
+        <div class="placeholder" style="height:54px;margin-top:8px;">iOS AVFoundation Recorder</div>
+        <div class="placeholder" style="height:44px;margin-top:8px;">Platform Storage</div>
+        <div class="placeholder" style="height:44px;margin-top:8px;">Platform Player Surface</div>
+        <p style="font-size:12px;margin-top:12px;">Platform code implements capabilities through expect/actual interfaces.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="options">
+  <div class="option" data-choice="single-recorder-controller" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Single Recorder Controller</h3>
+      <p>One shared controller coordinates normal and loop recording. Platform engines expose startSegment/stopSegment. Recommended for parity and low coupling.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="separate-mode-controllers" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Separate Mode Controllers</h3>
+      <p>Normal recording and loop recording each get a controller. Easier at first, but shared state and transitions can drift.</p>
+    </div>
+  </div>
+  <div class="option" data-choice="platform-owned-recording" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Platform-Owned Recording</h3>
+      <p>Android and iOS manage recording independently. Fastest to patch current code, weakest for long-term consistency.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Recommendation</h3>
+  <p>Use <strong>A. Single Recorder Controller</strong>. It keeps the UI identical, makes loop recording a policy in shared code, and keeps CameraX / AVFoundation implementation details behind small platform interfaces.</p>
+</div>

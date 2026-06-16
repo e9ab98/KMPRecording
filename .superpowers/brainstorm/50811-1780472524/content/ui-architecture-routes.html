@@ -1,0 +1,88 @@
+<h2>KMPRecording: UI and Architecture Direction</h2>
+<p class="subtitle">Choose the product direction first. The architecture underneath will follow the selected interaction model.</p>
+
+<div class="cards">
+  <div class="card" data-choice="cockpit" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Route A: Recording Cockpit</div>
+        <div class="mockup-body">
+          <div style="display:grid;grid-template-columns:2fr 0.85fr;gap:12px;min-height:250px;">
+            <div style="background:#111;border-radius:8px;position:relative;overflow:hidden;">
+              <div style="position:absolute;top:12px;left:12px;background:#d92b2b;color:white;padding:5px 9px;border-radius:4px;font-size:12px;">REC 00:12:38</div>
+              <div style="position:absolute;top:12px;right:12px;background:#263238;color:#cfd8dc;padding:5px 9px;border-radius:4px;font-size:12px;">1080P · Rear</div>
+              <div style="position:absolute;bottom:14px;left:14px;right:14px;height:34px;background:rgba(255,255,255,.08);border-radius:6px;"></div>
+              <div style="height:100%;display:flex;align-items:center;justify-content:center;color:#707070;">live camera preview</div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <div class="placeholder" style="height:54px;">Mode</div>
+              <div class="placeholder" style="height:54px;">Storage</div>
+              <div class="placeholder" style="height:54px;">Motion</div>
+              <button class="mock-button" style="margin-top:auto;background:#d92b2b;">Start / Stop</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Recording Cockpit</h3>
+      <p>Main screen is a professional recorder surface. Android and iOS share the same Compose layout; platform code only supplies camera preview and recording engines.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="native" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Route B: Platform-Native Feel</div>
+        <div class="mockup-body">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;min-height:250px;">
+            <div style="border:1px solid #ddd;border-radius:8px;padding:10px;">
+              <div class="label">Android</div>
+              <div class="placeholder" style="height:110px;">CameraX preview</div>
+              <div class="placeholder" style="height:36px;margin-top:8px;">Material controls</div>
+              <div class="placeholder" style="height:36px;margin-top:8px;">Android service state</div>
+            </div>
+            <div style="border:1px solid #ddd;border-radius:8px;padding:10px;">
+              <div class="label">iOS</div>
+              <div class="placeholder" style="height:110px;">AVFoundation preview</div>
+              <div class="placeholder" style="height:36px;margin-top:8px;">iOS-styled controls</div>
+              <div class="placeholder" style="height:36px;margin-top:8px;">iOS session state</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Platform-Native Screens</h3>
+      <p>Each platform owns more UI details. Easier to tune native behavior, but Android/iOS consistency and shared logic become harder to protect.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="settings-first" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Route C: Setup-First Workflow</div>
+        <div class="mockup-body">
+          <div style="display:grid;grid-template-columns:.8fr 1.2fr;gap:12px;min-height:250px;">
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="placeholder" style="height:42px;">Profile</div>
+              <div class="placeholder" style="height:42px;">Storage</div>
+              <div class="placeholder" style="height:42px;">Network</div>
+              <div class="placeholder" style="height:42px;">Safety</div>
+            </div>
+            <div style="background:#111;border-radius:8px;display:flex;align-items:center;justify-content:center;color:#777;">preview after setup</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C. Setup-First Tool</h3>
+      <p>Strong for configuration-heavy users. Recording becomes secondary to profiles, storage rules, upload rules, and automation.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>My recommendation</h3>
+  <p>Pick <strong>A. Recording Cockpit</strong>. This app's value is reliable recording, so the first screen should be the live recorder. We can still keep settings and video management strong, but the product should feel like a camera tool, not a settings console.</p>
+</div>

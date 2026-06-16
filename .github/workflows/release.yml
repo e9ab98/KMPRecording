@@ -1,0 +1,243 @@
+name: Build & Release APK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: '发布版本标签 (例如 v1.0.0 或 latest)'
+        required: true
+        default: 'latest'
+
+jobs:
+  build-android:
+    name: Build Android APKs
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build Debug APK
+        run: ./gradlew :androidApp:assembleDebug
+
+      - name: Build Release APK
+        run: ./gradlew :androidApp:assembleRelease
+
+      - name: Prepare APK outputs
+        run: |
+          mkdir -p outputs
+          cp androidApp/build/outputs/apk/debug/androidApp-debug.apk outputs/KMPRecording-debug.apk
+          cp androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk outputs/KMPRecording-release-unsigned.apk
+
+      - name: Sign Release APK (Optional)
+        id: sign_app
+        env:
+          KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ] && [ -n "$KEYSTORE_PASSWORD" ] && [ -n "$KEY_ALIAS" ] && [ -n "$KEY_PASSWORD" ]; then
+            echo "发现签名密钥 Secrets。正在对 Release APK 进行签名..."
+            echo -n "$KEYSTORE_BASE64" | tr -d '\r\n ' | base64 --decode > release.keystore
+
+            APKSIGNER=$(find $ANDROID_SDK_ROOT/build-tools -name apksigner | sort -V | tail -n 1)
+            echo "寻找到 apksigner 路径: $APKSIGNER"
+            $APKSIGNER sign --ks release.keystore \
+              --ks-pass pass:"$KEYSTORE_PASSWORD" \
+              --ks-key-alias "$KEY_ALIAS" \
+              --key-pass pass:"$KEY_PASSWORD" \
+              --out outputs/KMPRecording-release.apk \
+              outputs/KMPRecording-release-unsigned.apk
+            echo "签名完成，已输出 KMPRecording-release.apk"
+            rm -f release.keystore
+          else
+            echo "未配置完整签名 Secrets，将跳过 Release APK 自动签名阶段。"
+          fi
+
+      - name: Upload Android Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-apks
+          path: outputs/
+
+  build-ios:
+    name: Build iOS App (IPA & Simulator)
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Build iOS Simulator App
+        run: |
+          xcodebuild -project iosApp/iosApp.xcodeproj \
+                     -scheme iosApp \
+                     -configuration Debug \
+                     -sdk iphonesimulator \
+                     -derivedDataPath build_derived_simulator \
+                     build
+
+      - name: Install Apple Certificate and Provisioning Profile (Optional)
+        id: ios_sign_setup
+        env:
+          BUILD_CERTIFICATE_BASE64: ${{ secrets.IOS_BUILD_CERTIFICATE_BASE64 }}
+          P12_PASSWORD: ${{ secrets.IOS_P12_PASSWORD }}
+          BUILD_PROVISION_PROFILE_BASE64: ${{ secrets.IOS_BUILD_PROVISION_PROFILE_BASE64 }}
+          KEYCHAIN_PASSWORD: ${{ secrets.IOS_KEYCHAIN_PASSWORD }}
+        run: |
+          if [ -n "$BUILD_CERTIFICATE_BASE64" ] && [ -n "$P12_PASSWORD" ] && [ -n "$BUILD_PROVISION_PROFILE_BASE64" ] && [ -n "$KEYCHAIN_PASSWORD" ]; then
+            echo "发现 iOS 签名 Secrets。正在配置证书和描述文件..."
+            
+            CERTIFICATE_PATH=$RUNNER_TEMP/build_certificate.p12
+            PP_PATH=$RUNNER_TEMP/build_pp.mobileprovision
+            KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+
+            echo -n "$BUILD_CERTIFICATE_BASE64" | tr -d '\r\n ' | base64 --decode > $CERTIFICATE_PATH
+            echo -n "$BUILD_PROVISION_PROFILE_BASE64" | tr -d '\r\n ' | base64 --decode > $PP_PATH
+
+
+            security create-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+            security default-keychain -s $KEYCHAIN_PATH
+            security unlock-keychain -p "$KEYCHAIN_PASSWORD" $KEYCHAIN_PATH
+            security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+
+            security import $CERTIFICATE_PATH -P "$P12_PASSWORD" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+            security list-keychain -d user -s $KEYCHAIN_PATH
+
+            mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+            cp $PP_PATH ~/Library/MobileDevice/Provisioning\ Profiles/
+            
+            echo "has_signing=true" >> $GITHUB_OUTPUT
+          else
+            echo "未配置完整 iOS 签名 Secrets，将以未签名模式构建。"
+            echo "has_signing=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Build iOS Device App
+        run: |
+          if [ "${{ steps.ios_sign_setup.outputs.has_signing }}" = "true" ]; then
+            echo "正在进行签名构建..."
+            xcodebuild -project iosApp/iosApp.xcodeproj \
+                       -scheme iosApp \
+                       -configuration Release \
+                       -sdk iphoneos \
+                       -derivedDataPath build_derived_device \
+                       archive -archivePath build_derived_device/KMPRecording.xcarchive
+          else
+            echo "正在进行未签名构建..."
+            xcodebuild -project iosApp/iosApp.xcodeproj \
+                       -scheme iosApp \
+                       -configuration Release \
+                       -sdk iphoneos \
+                       -derivedDataPath build_derived_device \
+                       CODE_SIGNING_ALLOWED=NO \
+                       CODE_SIGNING_REQUIRED=NO \
+                       CODE_SIGN_IDENTITY="" \
+                       PROVISIONING_PROFILE_SPECIFIER="" \
+                       build
+          fi
+
+      - name: Package iOS Artifacts
+        run: |
+          mkdir -p outputs
+          
+          # 1. Package Simulator App
+          cd build_derived_simulator/Build/Products/Debug-iphonesimulator
+          zip -r ../../../../outputs/KMPRecording-ios-simulator.zip KMPRecording.app
+          cd -
+          
+          # 2. Package IPA (Signed or Unsigned)
+          if [ "${{ steps.ios_sign_setup.outputs.has_signing }}" = "true" ]; then
+            echo "正在导出签名 IPA..."
+            cat <<EOF > ExportOptions.plist
+            <?xml version="1.0" encoding="UTF-8"?>
+            <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+            <plist version="1.0">
+            <dict>
+                <key>method</key>
+                <string>ad-hoc</string>
+                <key>compileBitcode</key>
+                <false/>
+            </dict>
+            </plist>
+            EOF
+            xcodebuild -exportArchive \
+                       -archivePath build_derived_device/KMPRecording.xcarchive \
+                       -exportPath outputs/signed \
+                       -exportOptionsPlist ExportOptions.plist
+            mv outputs/signed/*.ipa outputs/KMPRecording-release.ipa
+            rm -rf outputs/signed ExportOptions.plist
+          else
+            echo "正在打包未签名 IPA..."
+            mkdir -p outputs/Payload
+            cp -r build_derived_device/Build/Products/Release-iphoneos/KMPRecording.app outputs/Payload/
+            cd outputs
+            zip -r KMPRecording-release-unsigned.ipa Payload
+            rm -rf Payload
+            cd -
+          fi
+
+      - name: Upload iOS Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-artifacts
+          path: outputs/
+
+  release:
+    name: Create and Publish GitHub Release
+    needs: [build-android, build-ios]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 必须，用于创建 Releases 和上传构建附件
+    
+    steps:
+      - name: Download All Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-artifacts
+
+      - name: Prepare Release Assets
+        run: |
+          mkdir -p release-assets
+          # 递归地将下载的所有工件拷贝到一个平级的发布资源目录中
+          find all-artifacts -type f -exec cp {} release-assets/ \;
+          echo "=== 待发布资源列表 ==="
+          ls -lh release-assets/
+
+      - name: Create and Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ inputs.tag_name || github.ref_name }}
+          files: release-assets/*
+          fail_on_unmatched_files: false
+          draft: false
+          prerelease: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

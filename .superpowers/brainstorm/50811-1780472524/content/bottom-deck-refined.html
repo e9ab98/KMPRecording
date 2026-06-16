@@ -1,0 +1,66 @@
+<h2>A2 Refined: Bottom Deck Cockpit</h2>
+<p class="subtitle">Shared Compose UI: Android and iOS render the same cockpit. Platform code provides preview, recording, permissions, and file playback surfaces.</p>
+
+<div class="mockup">
+  <div class="mockup-header">Primary Recording Screen</div>
+  <div class="mockup-body">
+    <div style="display:grid;grid-template-rows:1fr 86px;gap:12px;min-height:390px;">
+      <div style="background:#111;border-radius:8px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;color:#777;">
+        live camera preview
+        <div style="position:absolute;top:12px;left:12px;display:flex;gap:8px;align-items:center;">
+          <div style="background:#c62828;color:white;padding:6px 10px;border-radius:4px;font-size:12px;">REC</div>
+          <div style="background:rgba(0,0,0,.62);color:white;padding:6px 10px;border-radius:4px;font-size:12px;">00:12:38</div>
+        </div>
+        <div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.62);color:#e6e6e6;padding:6px 10px;border-radius:4px;font-size:12px;">1080P · 10 Mbps · Rear</div>
+        <div style="position:absolute;bottom:12px;left:12px;display:flex;gap:8px;">
+          <div style="background:rgba(0,0,0,.55);color:white;padding:6px 8px;border-radius:4px;font-size:12px;">Loop #8</div>
+          <div style="background:rgba(0,0,0,.55);color:white;padding:6px 8px;border-radius:4px;font-size:12px;">Storage 72%</div>
+          <div style="background:rgba(21,101,192,.82);color:white;padding:6px 8px;border-radius:4px;font-size:12px;">Motion armed</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:62px 62px 62px 1fr 62px 62px 82px;gap:9px;align-items:stretch;">
+        <div class="placeholder" style="display:flex;align-items:center;justify-content:center;">Mode</div>
+        <div class="placeholder" style="display:flex;align-items:center;justify-content:center;">Motion</div>
+        <div class="placeholder" style="display:flex;align-items:center;justify-content:center;">Camera</div>
+        <div style="border:1px solid #ddd;border-radius:8px;padding:8px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;font-size:12px;">
+          <div><div class="label">Storage</div><strong>72%</strong></div>
+          <div><div class="label">Segment</div><strong>5 min</strong></div>
+          <div><div class="label">Upload</div><strong>Idle</strong></div>
+        </div>
+        <button class="mock-button" style="background:#546e7a;">List</button>
+        <button class="mock-button" style="background:#455a64;">Gear</button>
+        <button class="mock-button" style="background:#c62828;">Stop</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="split">
+  <div class="mockup">
+    <div class="mockup-header">Composable Ownership</div>
+    <div class="mockup-body">
+      <div class="placeholder" style="height:40px;">RecordingRoute</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+        <div class="placeholder" style="height:80px;">CameraPreviewSlot</div>
+        <div class="placeholder" style="height:80px;">RecordingOverlay</div>
+      </div>
+      <div class="placeholder" style="height:64px;margin-top:8px;">BottomControlDeck</div>
+    </div>
+  </div>
+  <div class="mockup">
+    <div class="mockup-header">State Ownership</div>
+    <div class="mockup-body">
+      <div class="placeholder" style="height:40px;">RecordingViewModel</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px;">
+        <div class="placeholder" style="height:80px;">RecorderController</div>
+        <div class="placeholder" style="height:80px;">StorageController</div>
+      </div>
+      <div class="placeholder" style="height:64px;margin-top:8px;">SettingsRepository</div>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <h3>Key decision</h3>
+  <p>The bottom deck should show core actions only. Advanced settings live on the settings screen, while live status is compressed into the center telemetry strip.</p>
+</div>
