@@ -40,16 +40,12 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build Debug APK
-        run: ./gradlew :androidApp:assembleDebug
-
       - name: Build Release APK
         run: ./gradlew :androidApp:assembleRelease
 
       - name: Prepare APK outputs
         run: |
           mkdir -p outputs
-          cp androidApp/build/outputs/apk/debug/androidApp-debug.apk outputs/KMPRecording-debug.apk
           cp androidApp/build/outputs/apk/release/androidApp-release-unsigned.apk outputs/KMPRecording-release-unsigned.apk
 
       - name: Sign Release APK (Optional)
@@ -73,6 +69,7 @@ jobs:
               --out outputs/KMPRecording-release.apk \
               outputs/KMPRecording-release-unsigned.apk
             echo "签名完成，已输出 KMPRecording-release.apk"
+            rm -f outputs/KMPRecording-release-unsigned.apk
             rm -f release.keystore
           else
             echo "未配置完整签名 Secrets，将跳过 Release APK 自动签名阶段。"
@@ -129,14 +126,6 @@ jobs:
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
-      - name: Build iOS Simulator App
-        run: |
-          xcodebuild -project iosApp/iosApp.xcodeproj \
-                     -scheme iosApp \
-                     -configuration Debug \
-                     -sdk iphonesimulator \
-                     -derivedDataPath build_derived_simulator \
-                     build
 
       - name: Install Apple Certificate and Provisioning Profile (Optional)
         id: ios_sign_setup
@@ -201,12 +190,7 @@ jobs:
         run: |
           mkdir -p outputs
           
-          # 1. Package Simulator App
-          cd build_derived_simulator/Build/Products/Debug-iphonesimulator
-          zip -r ../../../../outputs/KMPRecording-ios-simulator.zip KMPRecording.app
-          cd -
-          
-          # 2. Package IPA (Signed or Unsigned)
+          # Package IPA (Signed or Unsigned)
           if [ "${{ steps.ios_sign_setup.outputs.has_signing }}" = "true" ]; then
             echo "正在导出签名 IPA..."
             echo '<?xml version="1.0" encoding="UTF-8"?>' > ExportOptions.plist
