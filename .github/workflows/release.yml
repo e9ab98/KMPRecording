@@ -209,18 +209,16 @@ jobs:
           # 2. Package IPA (Signed or Unsigned)
           if [ "${{ steps.ios_sign_setup.outputs.has_signing }}" = "true" ]; then
             echo "正在导出签名 IPA..."
-            cat <<EOF > ExportOptions.plist
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-    <key>method</key>
-    <string>ad-hoc</string>
-    <key>compileBitcode</key>
-    <false/>
-</dict>
-</plist>
-EOF
+            echo '<?xml version="1.0" encoding="UTF-8"?>' > ExportOptions.plist
+            echo '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">' >> ExportOptions.plist
+            echo '<plist version="1.0">' >> ExportOptions.plist
+            echo '<dict>' >> ExportOptions.plist
+            echo '    <key>method</key>' >> ExportOptions.plist
+            echo '    <string>ad-hoc</string>' >> ExportOptions.plist
+            echo '    <key>compileBitcode</key>' >> ExportOptions.plist
+            echo '    <false/>' >> ExportOptions.plist
+            echo '</dict>' >> ExportOptions.plist
+            echo '</plist>' >> ExportOptions.plist
             xcodebuild -exportArchive \
                        -archivePath build_derived_device/KMPRecording.xcarchive \
                        -exportPath outputs/signed \
