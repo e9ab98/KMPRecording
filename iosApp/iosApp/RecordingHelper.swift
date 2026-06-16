@@ -135,7 +135,7 @@ public class RecordingHelper: NSObject {
         RecordingBridge.shared.setPlayerTimeObserver = { view, callback in
             if let playerView = view as? PlayerView {
                 playerView.onTimeUpdate = { seconds in
-                    callback(seconds)
+                    callback(KotlinDouble(double: seconds))
                 }
             }
         }
